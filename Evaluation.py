@@ -22,5 +22,4 @@ def PPF(y_test, y_head):
     recall=recall_score(y_test,y_head)
     f1=f1_score(y_test,y_head)
     # Finish it.
-    
     return precise, recall, f1

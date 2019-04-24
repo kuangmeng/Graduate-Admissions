@@ -18,7 +18,7 @@ from Evaluation import R2_score
 x_train, x_test, y_train, y_test = ReadDataset("./data.csv")
 
 # Linear Regression
-lr = LinearRegression()
+lr = LinearRegression()    
 lr.fit(x_train, y_train)
 y_head_lr = lr.predict(x_test)
 
@@ -58,7 +58,11 @@ y_head_nn = nn.predict(x_test)
 # Please use R2_Score to evaluate these Regression methods
 if __name__ == "__main__":
     print(R2_score(y_test, y_head_lr))
-    ...
-    ...
+    print(R2_score(y_test, y_head_rfr))
+    print(R2_score(y_test, y_head_dtr))
+    print(R2_score(y_test, y_head_rg))
+    print(R2_score(y_test, y_head_lasso))
+    print(R2_score(y_test, y_head_by))
+    print(R2_score(y_test, y_head_nn))
 
 

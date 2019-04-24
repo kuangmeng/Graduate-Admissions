@@ -15,7 +15,6 @@ def ReadDataset(file):
     data=data.rename(columns = {'Chance of Admit ':'Chance of Admit'})
     y = data["Chance of Admit"].values
     x = data.drop(["Chance of Admit"], axis = 1)
-    print(y)
     # separating train (80%) and test (%20) sets
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.20, random_state = 0)
 

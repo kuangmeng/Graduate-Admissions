@@ -64,6 +64,9 @@ y_head_nn = nn.predict(x_test)
 # Please use "Precise, Recall, F1" to evaluate these Classification methods
 if __name__ == "__main__":
     print(PPF(y_test_01, y_head_lrc))
-    ...
-    ...
-
+    print(PPF(y_test_01, y_head_dt))
+    print(PPF(y_test_01, y_head_gbc))
+    print(PPF(y_test_01, y_head_svm))
+    print(PPF(y_test_01, y_head_rf))
+    print(PPF(y_test_01, y_head_sgd))
+    print(PPF(y_test_01, y_head_nn))

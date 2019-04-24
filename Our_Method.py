@@ -19,6 +19,7 @@ import xgboost as xgb
 import pandas as pd
 
 x_train, x_test, y_train, y_test = ReadDataset("./data.csv")
+print(y_test)
 
 #以0.8为标准，将录取分为成功1，失败0
 y_train_01 = [1 if each > 0.8 else 0 for each in y_train]
@@ -72,12 +73,12 @@ classification_result = Combination(result_list)
 #LASSO MODEL
 clf1 = LassoCV(alphas = [1, 0.1, 0.001, 0.0005, 5e-4])
 clf1.fit(x_train, y_train)
-lasso_preds = np.expm1(clf1.predict(x_test))
+lasso_preds = clf1.predict(x_test)
 
 #ELASTIC NET
 clf2 = ElasticNet(alpha=0.00005, l1_ratio=0.9)
 clf2.fit(x_train, y_train)
-elas_preds = np.expm1(clf2.predict(x_test))
+elas_preds = clf2.predict(x_test)
 
 #XGBOOST
 clf3=xgb.XGBRegressor(colsample_bytree=0.4,
@@ -90,11 +91,11 @@ clf3=xgb.XGBRegressor(colsample_bytree=0.4,
                  reg_lambda=0.45,
                  subsample=0.95)
 clf3.fit(x_train, y_train)
-xgb_preds = np.expm1(clf3.predict(x_test))
+xgb_preds = clf3.predict(x_test)
 
 regression_result1 = 0.45*lasso_preds + 0.25*xgb_preds+0.30*elas_preds
 
-regression_result2 = 0.5*lasso_preds + 0.2*xgb_preds+0.30*elas_preds
+regression_result2 = 0.5*lasso_preds + 0.2*xgb_preds + 0.30*elas_preds
 
 def GetFinal(reg_ret1, reg_ret2, cla_ret):
     return_list = []
@@ -106,6 +107,7 @@ def GetFinal(reg_ret1, reg_ret2, cla_ret):
     return return_list
 
 final_result = GetFinal(regression_result1, regression_result2, classification_result)
+# print(final_result)
 
 solution = pd.DataFrame({"Percent":final_result}, columns=['Percent'])
 solution.to_csv("result.csv", index = False)
