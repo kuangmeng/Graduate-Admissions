@@ -15,7 +15,7 @@ from sklearn.neural_network import MLPRegressor
 from Evaluation import R2_score
 
 
-x_train, x_test, y_train, y_test = ReadDataset("./data.csv")
+
 
 # Linear Regression
 lr = LinearRegression()    
