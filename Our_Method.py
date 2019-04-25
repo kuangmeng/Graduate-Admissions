@@ -13,17 +13,19 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import LogisticRegression
 from Evaluation import PPF, R2_score
 from sklearn.linear_model import ElasticNet, LassoCV
 import xgboost as xgb
 import pandas as pd
 
 x_train, x_test, y_train, y_test = ReadDataset("./data.csv")
-print(y_test)
+# print(y_test)
 
 #以0.8为标准，将录取分为成功1，失败0
-y_train_01 = [1 if each > 0.8 else 0 for each in y_train]
-y_test_01  = [1 if each > 0.8 else 0 for each in y_test]
+y_train_01 = [1 if each > 0.75 else 0 for each in y_train]
+y_test_01  = [1 if each > 0.75 else 0 for each in y_test]
 y_train_01 = np.array(y_train_01)
 y_test_01 = np.array(y_test_01)
 
@@ -52,16 +54,33 @@ nn = MLPClassifier(solver = 'lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), rando
 nn.fit(x_train, y_train_01)
 y_head_nn = nn.predict(x_test)
 
-result_list = [y_head_dt, y_head_gbc, y_head_svm, y_head_rf, y_head_nn]
+# SGD
+sgd = SGDClassifier(loss = "hinge", penalty = "l2", max_iter = 10, tol = 1)
+sgd.fit(x_train, y_train_01)
+y_head_sgd = sgd.predict(x_test)
+
+# Logistic Regression
+lrc = LogisticRegression()
+lrc.fit(x_train,y_train_01)
+y_head_lrc = lrc.predict(x_test)
+
+result_list = [y_head_nn,y_head_gbc]
+
+print(PPF(y_test_01, y_head_dt))
+print(PPF(y_test_01, y_head_gbc))
+print(PPF(y_test_01, y_head_svm))
+print(PPF(y_test_01, y_head_rf))
+print(PPF(y_test_01, y_head_nn))
+print(PPF(y_test_01, y_head_sgd))
+print(PPF(y_test_01, y_head_lrc))
+
 
 def Combination(result_list):
     len_ = len(result_list[0])
     ret_list = []
     for i in range(len_):
-        tmp_num = 0
-        for list_ in result_list:
-            tmp_num += list_[i]
-        if tmp_num >= 3:
+        tmp_num = 0.5 * result_list[0][i] + 0.5 * result_list[1][i]
+        if tmp_num >= 0.5:
             ret_list.append(1)
         else:
             ret_list.append(0)
@@ -93,9 +112,13 @@ clf3=xgb.XGBRegressor(colsample_bytree=0.4,
 clf3.fit(x_train, y_train)
 xgb_preds = clf3.predict(x_test)
 
-regression_result1 = 0.45*lasso_preds + 0.25*xgb_preds+0.30*elas_preds
+"""print(R2_score(y_test, lasso_preds))
+print(R2_score(y_test, xgb_preds))
+print(R2_score(y_test, elas_preds))"""
 
-regression_result2 = 0.5*lasso_preds + 0.2*xgb_preds + 0.30*elas_preds
+regression_result1 = 0.20*lasso_preds + 0.60*xgb_preds + 0.20*elas_preds #录取的
+
+regression_result2 = 0.15*lasso_preds + 0.70*xgb_preds + 0.15*elas_preds #没被录取的
 
 def GetFinal(reg_ret1, reg_ret2, cla_ret):
     return_list = []
@@ -107,10 +130,17 @@ def GetFinal(reg_ret1, reg_ret2, cla_ret):
     return return_list
 
 final_result = GetFinal(regression_result1, regression_result2, classification_result)
-# print(final_result)
+# final_result = GetFinal(regression_result1, regression_result2, y_head_svm)
+# print(len(final_result))
 
 solution = pd.DataFrame({"Percent":final_result}, columns=['Percent'])
 solution.to_csv("result.csv", index = False)
 
-print(R2_score(y_test, final_result))
 print(PPF(y_test_01, classification_result))
+
+print("Regression Results")
+print(R2_score(y_test, lasso_preds))
+print(R2_score(y_test, xgb_preds))
+print(R2_score(y_test, elas_preds))
+print(R2_score(y_test, regression_result1))
+print(R2_score(y_test, final_result))
